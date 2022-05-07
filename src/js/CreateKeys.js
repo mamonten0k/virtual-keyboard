@@ -4,11 +4,23 @@ export const HtmlObject = (
   text,
   id = undefined,
   path = undefined,
-) => `<${type} class='${classes}' ${path ? `src='${path}'` : ''} 
+) => {
+  if (type === 'input') {
+    return `<${type} class='${classes}' ${path ? `src='${path}'` : ''} 
+       ${id ? `id="${id}"` : ''}/>`;
+  }
+  return `<${type} class='${classes}' ${path ? `src='${path}'` : ''} 
     ${id ? `id="${id}"` : ''}>${text}</${type}>`;
+};
 
 export const WrapHTML = (
   content,
+  id,
   wrapperClasses = 'row row-wrap',
   wrapperType = 'div',
-) => `<${wrapperType} class="${wrapperClasses}">${content}</${wrapperType}>`;
+) => {
+  if (content === 'undefined') return '';
+  return `<${wrapperType} class="${wrapperClasses}" ${
+    id ? `id="${id}" ` : ''
+  }>${content}</${wrapperType}>`;
+};

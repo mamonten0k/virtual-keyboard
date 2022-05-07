@@ -1,5 +1,5 @@
 .keyboard {
-	width: 800px;
+	width: 900px;
 	&-wrap {
 		display: flex;
 		flex-direction: column;
@@ -10,24 +10,36 @@
 .row {
 	&-wrap {
 		display: flex;
-		gap: 10px;
+		gap: 8px;
+	}
+	&:last-child {
+		width: 810px;
 	}
 }
 
 .key {
 	flex: 1;
+	min-width: 48px;
 	position: relative;
 	user-select: none;
 	text-align: center;
-	padding:  12px;
+	padding:  15px;
 	color: white;
 	font-weight: 500;
 	border-radius: 3px;
 	&:hover {
 		cursor: pointer;
-		background-color: rgb(178, 158, 158);
+		background-color: rgba(28, 43, 116, 0.686);
+		color: white;
 	}
-	background-color: rgb(77, 80, 91);
+	background-color: rgb(80, 82, 91);
+	&:nth-child(7) {
+		.digit-back {
+			top: 0;
+			font-size: 16px;
+		}
+	}
+	transition: .1s;
 }
 
 .key-space {
@@ -38,13 +50,73 @@
 	position: absolute;
 	top: 2px;
 	left: 5px;
-	font-size: 13px;
+	font-size: 14px;
+	font-weight: 500;
 }	
 
-// .letter-ru {
-// 	display: none;
+.letter-ru {
+	display: none;
+}
+
+.key-tab,
+.key-del,
+.key-backspace,
+.key-caps,
+.key-shift,
+.key-enter  {
+	flex: 100%;
+}
+
+.key-tab,
+.key-del,
+.key-backspace,
+.key-caps,
+.key-shift,
+.key-enter,
+.key-ctrl,
+.key-win,
+.key-alt,
+.key-space,
+.key-arrow-up,
+.key-arrow-down,
+.key-arrow-right,
+.key-arrow-left {
+	background-color: rgb(53, 54, 66);
+	color: rgb(217, 217, 217); 
+}
+
+.key-ctrl,
+.key-win,
+.key-alt {
+	min-width: 60px;
+}
+
+.caps-highlight,
+.key-pressed {
+	background-color: rgb(53, 84, 239);
+	color: white;
+	transform: scale(0.95);
+	&:hover {
+		cursor: pointer;
+		background-color: rgb(53, 84, 239);
+	}
+}
+
+// .key-pressed {
+// 	transform: scale(0.8);
 // }
 
-.letter-eng {
-	display: none;
+.caps-highlight::before {
+	content: "";
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background-color: white;
+}
+
+.uppercase-on {
+	text-transform: uppercase;
 }
