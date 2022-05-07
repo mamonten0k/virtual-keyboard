@@ -1,0 +1,50 @@
+.keyboard {
+	width: 800px;
+	&-wrap {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+}
+
+.row {
+	&-wrap {
+		display: flex;
+		gap: 10px;
+	}
+}
+
+.key {
+	flex: 1;
+	position: relative;
+	user-select: none;
+	text-align: center;
+	padding:  12px;
+	color: white;
+	font-weight: 500;
+	border-radius: 3px;
+	&:hover {
+		cursor: pointer;
+		background-color: rgb(178, 158, 158);
+	}
+	background-color: rgb(77, 80, 91);
+}
+
+.key-space {
+	flex: 100%;
+}
+
+.digit-back {
+	position: absolute;
+	top: 2px;
+	left: 5px;
+	font-size: 13px;
+}	
+
+// .letter-ru {
+// 	display: none;
+// }
+
+.letter-eng {
+	display: none;
+}
