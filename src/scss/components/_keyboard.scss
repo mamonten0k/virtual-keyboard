@@ -1,10 +1,10 @@
 .keyboard {
 	width: 900px;
-	&-wrap {
+	// &-wrap {
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
-	}
+	// }
 }
 
 .row {
@@ -46,13 +46,9 @@
 	flex: 100%;
 }
 
-.digit-back {
-	position: absolute;
-	top: 2px;
-	left: 5px;
-	font-size: 14px;
-	font-weight: 500;
-}	
+.hide {
+	display: none;
+}
 
 .letter-ru {
 	display: none;
@@ -101,10 +97,6 @@
 		background-color: rgb(53, 84, 239);
 	}
 }
-
-// .key-pressed {
-// 	transform: scale(0.8);
-// }
 
 .caps-highlight::before {
 	content: "";

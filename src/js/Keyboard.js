@@ -1,168 +1,152 @@
-import { HtmlObject, WrapHTML } from './CreateKeys';
+import HtmlBuilder from './HtmlBuilder';
+import Key from './Key';
 import KeysData from './KeysData';
 
 class Keyboard {
-  constructor(data) {
-    this.keyPressed = 'false';
-    this.strucutre = '';
-    this.strucutre += HtmlObject('h1', 'rss-title', 'RSS Virtual Keyboard');
-    this.strucutre += HtmlObject('input', 'keyboard-input');
+  constructor(keysData) {
+    this.structure = '';
+    this.strotherHtmlucutre = '';
+    this.textarea = null;
+    this.keysData = keysData;
+    this.keys = new Map();
+    this.HtmlBuilder = new HtmlBuilder();
 
-    for (let row = 0; row < data.length; row += 1) {
-      this.strucutre += WrapHTML(this.renderRow(data[row]));
-    }
-
-    this.strucutre = WrapHTML(
-      this.strucutre,
-      undefined,
-      'keyboard keyboard-wrap',
-    );
+    this.handelEvent = this.handelEvent.bind(this);
+    this.handleCapsLock = this.handleCapsLock.bind(this);
+    this.handleTab = this.handleTab.bind(this);
+    this.handleShift = this.handleShift.bind(this);
+    // this.handleBackspace = this.handleBackspace.bind(this);
+    this.handleCapsLock = this.handleCapsLock.bind(this);
+    this.handleDefault = this.handleDefault.bind(this);
   }
 
-  renderRow(row) {
-    this.lang = 'en';
-    let rowResult = '';
+  createKeysByRow(row, rowNum) {
     for (let i = 0; i < row.length; i += 1) {
-      if (Array.isArray(row[i].content) && row[i].type === 'digits') {
-        rowResult += row[i].content.reduce((keys, currKey) => {
-          keys += WrapHTML(
-            HtmlObject('span', 'digit', currKey.en) +
-              HtmlObject('span', 'digit on-shift', currKey.shift),
-            currKey.id,
-            'key digit-key',
-          );
-          return keys;
-        }, '');
-      }
-      if (Array.isArray(row[i].content) && row[i].type === 'letters') {
-        rowResult += row[i].content.reduce((keys, currKey) => {
-          keys += WrapHTML(
-            HtmlObject('span', 'letter letter-eng', currKey.en) +
-              HtmlObject('span', 'letter on-shift', currKey.shift) +
-              HtmlObject('span', 'letter letter-ru', currKey.ru),
-            currKey.id,
-            'key letter-key',
-          );
-          return keys;
-        }, '');
-      }
-      if (row[i].type === 'complex') {
-        rowResult += HtmlObject(
-          'div',
-          `key ${row[i].class}`,
-          row[i].content,
-          row[i].id,
-        );
-      }
+      this.keys.set(row[i].id, new Key(row[i], rowNum));
     }
-    return rowResult;
   }
 
-  init() {
-    document.body.innerHTML += this.strucutre;
-    document.querySelectorAll('.key').forEach((key) => {
-      key.addEventListener('click', this.handleClick);
-    });
-    document.addEventListener('keydown', this.handelEvent);
-    document.addEventListener('keyup', this.handelEvent);
+  getHTML() {
+    let currRow = 0;
+    let rowLayout = '';
+    let keysLayout = '';
+
+    for (const key of this.keys.values()) {
+      if (currRow !== key.row) {
+        keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
+        rowLayout = '';
+        currRow += 1;
+      }
+      rowLayout += key.getHTML();
+    }
+
+    keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
+    return keysLayout;
   }
 
   handelEvent(evt) {
-    evt.preventDefault();
     switch (evt.code) {
       case 'CapsLock':
-        if (evt.type === 'keyup') break;
-        document.getElementById('CapsLock').classList.toggle('caps-highlight');
-        document
-          .querySelectorAll('.letter-key')
-          .forEach((letter) => letter.classList.toggle('uppercase-on'));
+        this.handleCapsLock(evt);
         break;
       case 'ShiftLeft':
-        document.getElementById('ShiftLeft').classList.toggle('key-pressed');
-        document
-          .querySelectorAll('.on-shift')
-          .forEach((letter) => letter.classList.toggle('shift-visible'));
+        this.handleShift(evt);
         break;
       case 'ShiftRight':
-        document
-          .querySelectorAll('.on-shift')
-          .forEach((letter) => letter.classList.toggle('shift-visible'));
-        this.keyPressed = !this.keyPressed;
+        this.handleShift(evt);
+        break;
+      case 'Backspace':
+        this.handleBackspace(evt);
+        break;
+      case 'Tab':
+        this.handleTab(evt);
         break;
       default:
+        this.handleDefault(evt);
         break;
     }
   }
 
-  // handleCapsLock() {
-  //   console.log(this.lang);
+  handleCapsLock(evt) {
+    evt.stopPropagation();
+    if (evt.type === 'keyup') return;
 
-  //   document.getElementById('CapsLock').classList.toggle('caps-on');
-  //   document
-  //     .querySelectorAll('.letter-key')
-  //     .forEach((letter) => letter.classList.toggle('uppercase-on'));
+    document.getElementById(evt.code).classList.toggle('caps-highlight');
+    this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
+  }
+
+  handleShift(evt) {
+    evt.stopPropagation();
+
+    if (evt.type === 'keydown' && !this.keyPressed) return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
+    this.onShiftKeys.forEach((letter) => {
+      letter.classList.toggle('hide');
+      letter.previousSibling.classList.toggle('hide');
+    });
+
+    this.keyPressed = !this.keyPressed;
+  }
+
+  // handleBackspace(evt) {
+  //   console.log(this.lang, evt.code);
+  //   // evt.stopPropagation();
   // }
 
-  // handleShift() {
-  //   if (!this.keyPressed) {
-  //     document
-  //       .getElementById('Shift')
-  //       .addEventListener('mouseup', this.handleShift);
-  //   }
-  //   document
-  //     .querySelectorAll('.on-shift')
-  //     .forEach((letter) => letter.classList.toggle('shift-visible'));
-  //   this.keyPressed = !this.keyPressed;
-  // }
+  handleTab(evt) {
+    evt.preventDefault();
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.textarea.value += '     ';
+  }
 
-  // handleCapsLock() {
-  //   this.caps.classList.toggle('caps-on');
-  //   this.letters.forEach((letter) => letter.classList.toggle('uppercase-on'));
-  // }
+  handleDefault(evt) {
+    evt.stopPropagation();
 
-  // handleKey(evt) {
-  //   document.getElementById(`${evt.code}`).classList?.toggle('key-pressed');
-  // }
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.textarea.value += evt.key;
+  }
+
+  init() {
+    document.body.innerHTML += this.HtmlBuilder.build('div', 'keyboard', ' ');
+
+    const wrapper = document.querySelector('.keyboard');
+
+    wrapper.innerHTML += this.HtmlBuilder.build(
+      'h1',
+      'rss-title',
+      'RSS Virtual Keyboard',
+    );
+
+    wrapper.innerHTML += this.HtmlBuilder.build(
+      'textarea',
+      'keyboard-textarea',
+      '',
+      '',
+      'single',
+    );
+
+    for (let row = 0; row < this.keysData.length; row += 1) {
+      this.createKeysByRow(this.keysData[row], row);
+    }
+
+    wrapper.innerHTML += this.getHTML();
+
+    // document.querySelectorAll('.key').forEach((key) => {
+    //   key.addEventListener('click', this.handleClick);
+    // });
+
+    this.keyLetters = document.querySelectorAll('.letter-key');
+    this.onShiftKeys = document.querySelectorAll('.on-shift');
+
+    document.addEventListener('keydown', this.handelEvent);
+    document.addEventListener('keyup', this.handelEvent);
+
+    this.textarea = document.querySelector('.keyboard-textarea');
+    this.textarea.focus();
+  }
 }
 
 const keyboard = new Keyboard(KeysData());
 keyboard.init();
-// const Title; = HtmlObject('h1', 'rss-title', 'RSS Virtual Keyboard');
-// const Input = HtmlObject('input', 'keyboard-input');
-// const KeyboardLayout = WrapHTML(
-//   Title + Input + createKeyboard(KeysData()),
-//   undefined,
-//   'keyboard keyboard-wrap',
-// );
-
-// const letters = document.querySelectorAll('.letter-key');
-// const caps = document.querySelector('.key-caps');
-
-// function handleCaps() {
-//   caps.classList.toggle('caps-on');
-//   letters.forEach((letter) => letter.classList.toggle('uppercase-on'));
-// }
-
-// function handleKey(evt) {
-//   document.getElementById(`${evt.code}`).classList?.toggle('key-pressed');
-// }
-
-// caps.addEventListener('click', handleCaps);
-
-// document.addEventListener('keydown', (evt) => {
-//   console.log(evt.code);
-//   evt.preventDefault();
-//   if (evt.code === 'CapsLock') {
-//     handleCaps();
-//   } else {
-//     handleKey(evt);
-//   }
-// });
-
-// document.addEventListener('keyup', (evt) => {
-//   evt.preventDefault();
-//   if (evt.code === 'CapsLock') {
-//     return;
-//   }
-//   document.getElementById(`${evt.code}`).classList?.toggle('key-pressed');
-// });
