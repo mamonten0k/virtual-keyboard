@@ -14,11 +14,12 @@ class Keyboard {
     this.handelEvent = this.handelEvent.bind(this);
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleTab = this.handleTab.bind(this);
-    this.handleShift = this.handleShift.bind(this);
+    this.handleShiftRight = this.handleShiftRight.bind(this);
+    this.handleShiftLeft = this.handleShiftLeft.bind(this);
     this.handleBackspace = this.handleBackspace.bind(this);
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleDefault = this.handleDefault.bind(this);
-    this.handleArrow = this.handleArrow.bind(this);
+    // this.handleArrow = this.handleArrow.bind(this);
   }
 
   createKeysByRow(row, rowNum) {
@@ -51,10 +52,10 @@ class Keyboard {
         this.handleCapsLock(evt);
         break;
       case 'ShiftLeft':
-        this.handleShift(evt);
+        this.handleShiftLeft(evt);
         break;
       case 'ShiftRight':
-        this.handleShift(evt);
+        this.handleShiftRight(evt);
         break;
       case 'Backspace':
         this.handleBackspace(evt);
@@ -74,12 +75,12 @@ class Keyboard {
       case 'AltRight':
         this.handleAltRight(evt);
         break;
-      // case 'ControlLeft':
-      //   this.handleControl(evt);
-      //   break;
-      // case 'ControlRight':
-      //   this.handleControl(evt);
-      //   break;
+      case 'ControlLeft':
+        this.handleControl(evt);
+        break;
+      case 'ControlRight':
+        this.handleControl(evt);
+        break;
       case 'ArrowUp':
         this.handleArrow(evt);
         break;
@@ -109,10 +110,9 @@ class Keyboard {
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
   }
 
-  handleShift(evt) {
+  handleShiftLeft(evt) {
     evt.preventDefault();
 
-    // if (evt.shiftKey && evt.altKey && evt.type !== 'keyup') return;
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(evt.code).classList.toggle('key-pressed');
@@ -122,6 +122,47 @@ class Keyboard {
       letter.previousSibling.classList.toggle('hide');
     });
 
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleShiftRight(evt) {
+    evt.preventDefault();
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
+    this.onShiftKeys.forEach((letter) => {
+      letter.classList.toggle('hide');
+      letter.previousSibling.classList.toggle('hide');
+    });
+
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleBackspace(evt) {
+    this.textarea.focus();
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleControl(evt) {
+    evt.preventDefault();
+    console.log(
+      evt.code,
+      evt.altKey,
+      evt.shiftKey,
+      this.keys.get(evt.code).keyPressed,
+    );
+
+    // Немного говнокода решили проблему (Или нет).
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
     this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
   }
 
@@ -138,6 +179,11 @@ class Keyboard {
   handleSpace(evt) {
     evt.preventDefault();
 
+    if ((evt.altKey || evt.tabtKey) && evt.type === 'keydown') {
+      this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+      return;
+    }
+
     if (evt.type !== 'keyup') this.changeTextareaValue(evt.key);
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
@@ -146,12 +192,8 @@ class Keyboard {
   }
 
   handleArrow(evt) {
-    evt.preventDefault();
-
     if (evt.type !== 'keyup') {
-      this.changeTextareaValue(
-        document.getElementById(evt.code).firstChild.innerHTML,
-      );
+      this.textarea.focus();
     }
 
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
@@ -184,7 +226,10 @@ class Keyboard {
   handleAltRight(evt) {
     evt.preventDefault();
 
-    console.log(evt.code, evt.type === 'keydown');
+    if (evt.shiftKey && evt.altKey && evt.type === 'keyup') {
+      document.getElementById('ControlLeft').classList.remove('key-pressed');
+    }
+
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(evt.code).classList.toggle('key-pressed');
@@ -203,30 +248,12 @@ class Keyboard {
   handleDefault(evt) {
     evt.preventDefault();
 
-    if (evt.type !== 'keyup') this.changeTextareaValue(evt.key);
+    if (evt.type !== 'keyup') this.changeTextareaValue();
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(evt.code).classList.toggle('key-pressed');
     this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
   }
-
-  handleBackspace(evt) {
-    this.textarea.focus();
-
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
-  }
-
-  // handleControl(evt) {
-  //   evt.preventDefault();
-
-  //   if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
-
-  //   document.getElementById(evt.code).classList.toggle('key-pressed');
-  //   this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
-  // }
 
   handleDelete(evt) {
     this.textarea.focus();
