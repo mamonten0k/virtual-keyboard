@@ -10,6 +10,8 @@ class Keyboard {
     this.keysData = keysData;
     this.keys = new Map();
     this.HtmlBuilder = new HtmlBuilder();
+    this.currId = '';
+    this.capsLock = false;
 
     this.handelEvent = this.handelEvent.bind(this);
     this.handleMouseEvent = this.handleMouseEvent.bind(this);
@@ -48,6 +50,7 @@ class Keyboard {
   }
 
   handelEvent(evt) {
+    console.log(evt);
     const { code: id } = evt;
     switch (id) {
       case 'CapsLock':
@@ -98,6 +101,9 @@ class Keyboard {
       case 'Delete':
         this.handleDelete(evt, id);
         break;
+      case 'MetaLeft':
+        this.handleMetaLeft(evt, id);
+        break;
       default:
         this.handleDefault(evt, id);
         break;
@@ -105,27 +111,35 @@ class Keyboard {
   }
 
   handleMouseEvent(evt) {
-    let id;
-    if (evt.target.id !== '') {
-      id = evt.target.id.replace(/\s/g, '');
-    } else {
-      id = evt.target.parentNode.id.replace(/\s/g, '');
+    this.textarea.focus();
+
+    if (evt.target.id !== '' && evt.type === 'mousedown') {
+      this.currId = evt.target.id.replace(/\s/g, '');
+    } else if (evt.type === 'mousedown') {
+      this.currId = evt.target.parentNode.id.replace(/\s/g, '');
     }
-    console.log(id);
+    console.log(this.currId);
     if (evt.type === 'mousedown') {
-      this.handelEvent(new KeyboardEvent('keydown', { code: id }));
+      this.handelEvent(new KeyboardEvent('keydown', { code: this.currId }));
     } else {
-      this.handelEvent(new KeyboardEvent('keyup', { code: id }));
+      this.handelEvent(new KeyboardEvent('keyup', { code: this.currId }));
     }
   }
 
   handleCapsLock(evt, id) {
     evt.stopPropagation();
-    if (evt.type === 'keyup') return;
+
+    if (evt.type === 'keyup') {
+      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      return;
+    }
+
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(id).classList.toggle('caps-highlight');
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
     this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.capsLock = !this.capsLock;
   }
 
   handleShiftLeft(evt, id) {
@@ -190,7 +204,7 @@ class Keyboard {
 
   handleTab(evt, id) {
     evt.preventDefault();
-    // if (evt.altKey && evt.tabKey && evt.type === 'keydown') return;
+
     if (evt.type !== 'keyup') this.changeTextareaValue('\t');
     if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
@@ -259,6 +273,15 @@ class Keyboard {
     this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
+  handleMetaLeft(evt, id) {
+    evt.preventDefault();
+
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+  }
+
   handleEnter(evt, id) {
     evt.preventDefault();
 
@@ -292,11 +315,11 @@ class Keyboard {
         break;
       }
     }
-
+    console.log(this.keys.get('CapsLock').keyPressed);
     if (
       this.keys.get('ShiftLeft').keyPressed ||
       this.keys.get('ShiftRight').keyPressed ||
-      this.keys.get('CapsLock').keyPressed
+      this.capsLock
     ) {
       return symbol.toUpperCase();
     }
