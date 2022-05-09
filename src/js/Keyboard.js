@@ -12,6 +12,7 @@ class Keyboard {
     this.HtmlBuilder = new HtmlBuilder();
 
     this.handelEvent = this.handelEvent.bind(this);
+    this.handleMouseEvent = this.handleMouseEvent.bind(this);
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleTab = this.handleTab.bind(this);
     this.handleShiftRight = this.handleShiftRight.bind(this);
@@ -19,7 +20,7 @@ class Keyboard {
     this.handleBackspace = this.handleBackspace.bind(this);
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleDefault = this.handleDefault.bind(this);
-    // this.handleArrow = this.handleArrow.bind(this);
+    this.handleArrow = this.handleArrow.bind(this);
   }
 
   createKeysByRow(row, rowNum) {
@@ -47,116 +48,131 @@ class Keyboard {
   }
 
   handelEvent(evt) {
-    switch (evt.code) {
+    const { code: id } = evt;
+    switch (id) {
       case 'CapsLock':
-        this.handleCapsLock(evt);
+        this.handleCapsLock(evt, id);
         break;
       case 'ShiftLeft':
-        this.handleShiftLeft(evt);
+        this.handleShiftLeft(evt, id);
         break;
       case 'ShiftRight':
-        this.handleShiftRight(evt);
+        this.handleShiftRight(evt, id);
         break;
       case 'Backspace':
-        this.handleBackspace(evt);
+        this.handleBackspace(evt, id);
         break;
       case 'Tab':
-        this.handleTab(evt);
+        this.handleTab(evt, id);
         break;
       case 'Space':
-        this.handleSpace(evt);
+        this.handleSpace(evt, id);
         break;
       case 'Enter':
-        this.handleEnter(evt);
+        this.handleEnter(evt, id);
         break;
       case 'AltLeft':
-        this.handleAltLeft(evt);
+        this.handleAltLeft(evt, id);
         break;
       case 'AltRight':
-        this.handleAltRight(evt);
+        this.handleAltRight(evt, id);
         break;
       case 'ControlLeft':
-        this.handleControl(evt);
+        this.handleControl(evt, id);
         break;
       case 'ControlRight':
-        this.handleControl(evt);
+        this.handleControl(evt, id);
         break;
       case 'ArrowUp':
-        this.handleArrow(evt);
+        this.handleArrow(evt, id);
         break;
       case 'ArrowDown':
-        this.handleArrow(evt);
+        this.handleArrow(evt, id);
         break;
       case 'ArrowLeft':
-        this.handleArrow(evt);
+        this.handleArrow(evt, id);
         break;
       case 'ArrowRight':
-        this.handleArrow(evt);
+        this.handleArrow(evt, id);
         break;
       case 'Delete':
-        this.handleDelete(evt);
+        this.handleDelete(evt, id);
         break;
       default:
-        this.handleDefault(evt);
+        this.handleDefault(evt, id);
         break;
     }
   }
 
-  handleCapsLock(evt) {
+  handleMouseEvent(evt) {
+    let id;
+    if (evt.target.id !== '') {
+      id = evt.target.id.replace(/\s/g, '');
+    } else {
+      id = evt.target.parentNode.id.replace(/\s/g, '');
+    }
+    console.log(id);
+    if (evt.type === 'mousedown') {
+      this.handelEvent(new KeyboardEvent('keydown', { code: id }));
+    } else {
+      this.handelEvent(new KeyboardEvent('keyup', { code: id }));
+    }
+  }
+
+  handleCapsLock(evt, id) {
     evt.stopPropagation();
     if (evt.type === 'keyup') return;
 
-    document.getElementById(evt.code).classList.toggle('caps-highlight');
+    document.getElementById(id).classList.toggle('caps-highlight');
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleShiftLeft(evt) {
+  handleShiftLeft(evt, id) {
     evt.preventDefault();
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
+    document.getElementById(id).classList.toggle('key-pressed');
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
     this.onShiftKeys.forEach((letter) => {
       letter.classList.toggle('hide');
       letter.previousSibling.classList.toggle('hide');
     });
 
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleShiftRight(evt) {
+  handleShiftRight(evt, id) {
     evt.preventDefault();
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
+    document.getElementById(id).classList.toggle('key-pressed');
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
     this.onShiftKeys.forEach((letter) => {
       letter.classList.toggle('hide');
       letter.previousSibling.classList.toggle('hide');
     });
 
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleBackspace(evt) {
+  handleBackspace(evt, id) {
     this.textarea.focus();
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleControl(evt) {
+  handleControl(evt, id) {
     evt.preventDefault();
 
     if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
       this.keyLettersEn.forEach((letter) => {
         letter.classList.toggle('hide-lang-change');
-        letter.classList.toggle('input-visible');
       });
       this.keyLettersRu.forEach((letter) => {
         if (letter.previousSibling.classList.contains('behave-on-shift')) {
@@ -164,60 +180,56 @@ class Keyboard {
         }
         letter.classList.toggle('hide');
       });
-      // this.onShiftKeys.forEach((letter) => {
-      //   if (letter.previousSibling.classList.contains('behave-on-shift')) {
-      //     letter.previousSibling?.classList.toggle('input-visible');
-      //   }
-      // });
     }
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleTab(evt) {
+  handleTab(evt, id) {
     evt.preventDefault();
     // if (evt.altKey && evt.tabKey && evt.type === 'keydown') return;
     if (evt.type !== 'keyup') this.changeTextareaValue('\t');
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleSpace(evt) {
+  handleSpace(evt, id) {
     evt.preventDefault();
 
     if ((evt.altKey || evt.tabtKey) && evt.type === 'keydown') {
-      this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      this.textarea.focus();
       return;
     }
 
-    if (evt.type !== 'keyup') this.changeTextareaValue(evt.key);
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (evt.type !== 'keyup') this.changeTextareaValue(' ');
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleArrow(evt) {
+  handleArrow(evt, id) {
     if (evt.type !== 'keyup') {
       this.textarea.focus();
     }
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleAltLeft(evt) {
+  handleAltLeft(evt, id) {
     evt.preventDefault();
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
-    document.getElementById(evt.code).classList.toggle('key-pressed');
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
+    document.getElementById(id).classList.toggle('key-pressed');
 
     if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
       this.keyLettersEn.forEach((letter) => {
@@ -231,44 +243,44 @@ class Keyboard {
       });
     }
 
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleAltRight(evt) {
+  handleAltRight(evt, id) {
     evt.preventDefault();
 
     if (evt.shiftKey && evt.altKey && evt.type === 'keyup') {
       document.getElementById('ControlLeft').classList.remove('key-pressed');
     }
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  handleEnter(evt) {
+  handleEnter(evt, id) {
     evt.preventDefault();
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
+    document.getElementById(id).classList.toggle('key-pressed');
 
     if (evt.type === 'keyup') return;
     this.changeTextareaValue('\n');
   }
 
-  handleDefault(evt) {
+  handleDefault(evt, id) {
     evt.preventDefault();
 
-    if (this.keys.get(evt.code) === undefined) return;
-    if (evt.type !== 'keyup') this.changeTextareaValue(this.getInputValue(evt));
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id) === undefined) return;
+    if (evt.type !== 'keyup') this.changeTextareaValue(this.getInputValue(evt, id));
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
-  getInputValue(evt) {
-    const parentNode = document.getElementById(evt.code);
+  getInputValue(evt, id) {
+    const parentNode = document.getElementById(id);
     let symbol = '';
 
     for (let i = 0; i < parentNode.children.length; i += 1) {
@@ -281,19 +293,23 @@ class Keyboard {
       }
     }
 
-    if (evt.shiftKey || this.keys.get('CapsLock').keyPressed) {
+    if (
+      this.keys.get('ShiftLeft').keyPressed ||
+      this.keys.get('ShiftRight').keyPressed ||
+      this.keys.get('CapsLock').keyPressed
+    ) {
       return symbol.toUpperCase();
     }
     return symbol;
   }
 
-  handleDelete(evt) {
+  handleDelete(evt, id) {
     this.textarea.focus();
 
-    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+    document.getElementById(id).classList.toggle('key-pressed');
+    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
   changeTextareaValue(input) {
@@ -331,10 +347,6 @@ class Keyboard {
 
     wrapper.innerHTML += this.getHTML();
 
-    // document.querySelectorAll('.key').forEach((key) => {
-    //   key.addEventListener('click', this.handleClick);
-    // });
-
     this.keyLetters = document.querySelectorAll('.letter-key');
     this.keyLettersEn = document.querySelectorAll('.letter-en');
     this.keyLettersRu = document.querySelectorAll('.letter-ru');
@@ -342,6 +354,8 @@ class Keyboard {
 
     document.addEventListener('keydown', this.handelEvent);
     document.addEventListener('keyup', this.handelEvent);
+    document.addEventListener('mousedown', this.handleMouseEvent);
+    document.addEventListener('mouseup', this.handleMouseEvent);
 
     this.textarea = document.querySelector('.keyboard-textarea');
     this.textarea.focus();
