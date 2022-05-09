@@ -108,6 +108,7 @@ class Keyboard {
 
     document.getElementById(evt.code).classList.toggle('caps-highlight');
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
   }
 
   handleShiftLeft(evt) {
@@ -151,14 +152,24 @@ class Keyboard {
 
   handleControl(evt) {
     evt.preventDefault();
-    console.log(
-      evt.code,
-      evt.altKey,
-      evt.shiftKey,
-      this.keys.get(evt.code).keyPressed,
-    );
 
-    // Немного говнокода решили проблему (Или нет).
+    if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
+      this.keyLettersEn.forEach((letter) => {
+        letter.classList.toggle('hide-lang-change');
+        letter.classList.toggle('input-visible');
+      });
+      this.keyLettersRu.forEach((letter) => {
+        if (letter.previousSibling.classList.contains('behave-on-shift')) {
+          letter.previousSibling?.classList.toggle('hide-lang-change');
+        }
+        letter.classList.toggle('hide');
+      });
+      // this.onShiftKeys.forEach((letter) => {
+      //   if (letter.previousSibling.classList.contains('behave-on-shift')) {
+      //     letter.previousSibling?.classList.toggle('input-visible');
+      //   }
+      // });
+    }
 
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
@@ -248,11 +259,32 @@ class Keyboard {
   handleDefault(evt) {
     evt.preventDefault();
 
-    if (evt.type !== 'keyup') this.changeTextareaValue();
+    if (this.keys.get(evt.code) === undefined) return;
+    if (evt.type !== 'keyup') this.changeTextareaValue(this.getInputValue(evt));
     if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(evt.code).classList.toggle('key-pressed');
     this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  getInputValue(evt) {
+    const parentNode = document.getElementById(evt.code);
+    let symbol = '';
+
+    for (let i = 0; i < parentNode.children.length; i += 1) {
+      if (
+        !parentNode.children[i].classList.contains('hide') &&
+        !parentNode.children[i].classList.contains('hide-lang-change')
+      ) {
+        symbol = parentNode.children[i].innerHTML;
+        break;
+      }
+    }
+
+    if (evt.shiftKey || this.keys.get('CapsLock').keyPressed) {
+      return symbol.toUpperCase();
+    }
+    return symbol;
   }
 
   handleDelete(evt) {
