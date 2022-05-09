@@ -19,7 +19,14 @@ export default class Key {
 
   getHTML() {
     let code = '';
-    code += this.HtmlBuilder.build(this.type, 'letter-en', this.en);
+
+    if (this.classes === 'digit') {
+      code += this.HtmlBuilder.build(this.type, 'digit', this.en);
+    } else if (this.classes === 'letter-key') {
+      code += this.HtmlBuilder.build(this.type, 'letter-en', this.en);
+    } else {
+      code += this.HtmlBuilder.build(this.type, 'key-complex', this.en);
+    }
 
     if (this.shift) {
       code += this.HtmlBuilder.build(this.type, 'behave-on-shift hide', this.shift);

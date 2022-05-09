@@ -15,9 +15,10 @@ class Keyboard {
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleTab = this.handleTab.bind(this);
     this.handleShift = this.handleShift.bind(this);
-    // this.handleBackspace = this.handleBackspace.bind(this);
+    this.handleBackspace = this.handleBackspace.bind(this);
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleDefault = this.handleDefault.bind(this);
+    this.handleArrow = this.handleArrow.bind(this);
   }
 
   createKeysByRow(row, rowNum) {
@@ -61,6 +62,39 @@ class Keyboard {
       case 'Tab':
         this.handleTab(evt);
         break;
+      case 'Space':
+        this.handleSpace(evt);
+        break;
+      case 'Enter':
+        this.handleEnter(evt);
+        break;
+      case 'AltLeft':
+        this.handleAltLeft(evt);
+        break;
+      case 'AltRight':
+        this.handleAltRight(evt);
+        break;
+      // case 'ControlLeft':
+      //   this.handleControl(evt);
+      //   break;
+      // case 'ControlRight':
+      //   this.handleControl(evt);
+      //   break;
+      case 'ArrowUp':
+        this.handleArrow(evt);
+        break;
+      case 'ArrowDown':
+        this.handleArrow(evt);
+        break;
+      case 'ArrowLeft':
+        this.handleArrow(evt);
+        break;
+      case 'ArrowRight':
+        this.handleArrow(evt);
+        break;
+      case 'Delete':
+        this.handleDelete(evt);
+        break;
       default:
         this.handleDefault(evt);
         break;
@@ -76,9 +110,10 @@ class Keyboard {
   }
 
   handleShift(evt) {
-    evt.stopPropagation();
+    evt.preventDefault();
 
-    if (evt.type === 'keydown' && !this.keyPressed) return;
+    // if (evt.shiftKey && evt.altKey && evt.type !== 'keyup') return;
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(evt.code).classList.toggle('key-pressed');
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
@@ -87,25 +122,129 @@ class Keyboard {
       letter.previousSibling.classList.toggle('hide');
     });
 
-    this.keyPressed = !this.keyPressed;
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
   }
-
-  // handleBackspace(evt) {
-  //   console.log(this.lang, evt.code);
-  //   // evt.stopPropagation();
-  // }
 
   handleTab(evt) {
     evt.preventDefault();
+    // if (evt.altKey && evt.tabKey && evt.type === 'keydown') return;
+    if (evt.type !== 'keyup') this.changeTextareaValue('\t');
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
     document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.textarea.value += '     ';
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleSpace(evt) {
+    evt.preventDefault();
+
+    if (evt.type !== 'keyup') this.changeTextareaValue(evt.key);
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleArrow(evt) {
+    evt.preventDefault();
+
+    if (evt.type !== 'keyup') {
+      this.changeTextareaValue(
+        document.getElementById(evt.code).firstChild.innerHTML,
+      );
+    }
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleAltLeft(evt) {
+    evt.preventDefault();
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+
+    if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
+      this.keyLettersEn.forEach((letter) => {
+        letter.classList.toggle('hide-lang-change');
+      });
+      this.keyLettersRu.forEach((letter) => {
+        if (letter.previousSibling.classList.contains('behave-on-shift')) {
+          letter.previousSibling?.classList.toggle('hide-lang-change');
+        }
+        letter.classList.toggle('hide');
+      });
+    }
+
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleAltRight(evt) {
+    evt.preventDefault();
+
+    console.log(evt.code, evt.type === 'keydown');
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleEnter(evt) {
+    evt.preventDefault();
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+
+    if (evt.type === 'keyup') return;
+    this.changeTextareaValue('\n');
   }
 
   handleDefault(evt) {
-    evt.stopPropagation();
+    evt.preventDefault();
+
+    if (evt.type !== 'keyup') this.changeTextareaValue(evt.key);
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(evt.code).classList.toggle('key-pressed');
-    this.textarea.value += evt.key;
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  handleBackspace(evt) {
+    this.textarea.focus();
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  // handleControl(evt) {
+  //   evt.preventDefault();
+
+  //   if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+  //   document.getElementById(evt.code).classList.toggle('key-pressed');
+  //   this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  // }
+
+  handleDelete(evt) {
+    this.textarea.focus();
+
+    if (this.keys.get(evt.code).keyPressed && evt.type === 'keydown') return;
+
+    document.getElementById(evt.code).classList.toggle('key-pressed');
+    this.keys.get(evt.code).keyPressed = !this.keys.get(evt.code).keyPressed;
+  }
+
+  changeTextareaValue(input) {
+    this.textarea.setRangeText(
+      input,
+      this.textarea.selectionStart,
+      this.textarea.selectionEnd,
+      'end',
+    );
+    this.textarea.focus();
   }
 
   init() {
@@ -138,7 +277,9 @@ class Keyboard {
     // });
 
     this.keyLetters = document.querySelectorAll('.letter-key');
-    this.onShiftKeys = document.querySelectorAll('.on-shift');
+    this.keyLettersEn = document.querySelectorAll('.letter-en');
+    this.keyLettersRu = document.querySelectorAll('.letter-ru');
+    this.onShiftKeys = document.querySelectorAll('.behave-on-shift');
 
     document.addEventListener('keydown', this.handelEvent);
     document.addEventListener('keyup', this.handelEvent);

@@ -1,10 +1,33 @@
 .keyboard {
 	width: 900px;
-	// &-wrap {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	// }
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+
+	&-textarea {
+		border-radius: 3px;
+        padding: 10px;
+		resize: none;
+        font-size: 16px;
+		letter-spacing: .05rem;
+		height: 200px;
+
+
+        &::-webkit-scrollbar {
+            width: 5px;
+			height: 5px;
+            background: none;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: rgb(53, 84, 239);
+			height: 5px;
+            border-radius: 2px;
+        }
+
+		margin-bottom: 20px;
+		white-space: pre-wrap;
+	}
 }
 
 .row {
@@ -39,7 +62,7 @@
 			font-size: 16px;
 		}
 	}
-	transition: .1s;
+	transition: .1s ease-out;
 }
 
 .key-space {
@@ -50,7 +73,7 @@
 	display: none;
 }
 
-.letter-ru {
+.hide-lang-change {
 	display: none;
 }
 

@@ -36,7 +36,7 @@ export default function KeysData() {
       { en: 'p', ru: 'з', id: 'KeyP', classes: 'letter-key' },
       { en: '[', shift: '{', ru: 'х', id: 'BracketLeft', classes: 'letter-key'},
       { en: ']', shift: '}', ru: 'ъ', id: 'BracketRight', classes: 'letter-key'},
-      { en: '\\', ru: '/', id: 'Backslash', classes: 'letter-key' },
+      { en: '\\', shift: '\|', ru: '/', id: 'Backslash', classes: 'letter-key' },
       { en: 'DEL', id: 'Delete', classes: 'key-del' },
     ],
     [
