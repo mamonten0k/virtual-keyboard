@@ -8,6 +8,7 @@
 		border-radius: 3px;
         padding: 10px;
 		resize: none;
+		outline: none;
         font-size: 16px;
 		letter-spacing: .05rem;
 		height: 200px;
@@ -28,6 +29,7 @@
 		margin-bottom: 20px;
 		white-space: pre-wrap;
 	}
+
 }
 
 .row {
@@ -63,6 +65,14 @@
 		}
 	}
 	transition: .1s ease-out;
+}
+
+.rss-description {
+	font-size: 18px;
+	line-height: 120%;
+	letter-spacing: 1px;
+	margin-bottom: 10px;
+	text-align:justify;
 }
 
 .key-space {
