@@ -103,7 +103,6 @@ class Keyboard {
   }
 
   handleBlur() {
-    // console.log('dada');
     if (document.visibilityState === 'visible') {
       this.keys.get('AltLeft').keyPressed = !this.keys.get('AltLeft').keyPressed;
       this.keys.get('Tab').keyPressed = !this.keys.get('Tab').keyPressed;
@@ -159,12 +158,6 @@ class Keyboard {
     });
 
     this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
-  }
-
-  handleBackspace(evt, id) {
-    this.textarea.focus();
-
-    this.onKeyPressed(evt, id);
   }
 
   handleControl(evt, id) {
@@ -250,9 +243,50 @@ class Keyboard {
     this.onKeyPressed(evt, id);
   }
 
-  handleDelete(evt, id) {
-    this.textarea.focus();
+  handleBackspace(evt, id) {
+    evt.preventDefault();
+
     this.onKeyPressed(evt, id);
+
+    const { value } = this.textarea;
+    const { selectionStart } = this.textarea;
+    const { selectionEnd } = this.textarea;
+
+    if (!value || selectionStart === 0) return;
+    if (evt.type === 'keyup') return;
+
+    if (selectionStart === selectionEnd) {
+      this.textarea.value =
+        value.slice(0, selectionStart - 1) + value.slice(selectionEnd);
+      this.changeTextareaSelection(selectionStart - 1);
+    } else {
+      this.textarea.value =
+        value.slice(0, selectionStart) + value.slice(selectionEnd);
+      this.changeTextareaSelection(selectionStart);
+    }
+  }
+
+  handleDelete(evt, id) {
+    evt.preventDefault();
+
+    this.onKeyPressed(evt, id);
+
+    const { value } = this.textarea;
+    const { selectionStart } = this.textarea;
+    const { selectionEnd } = this.textarea;
+
+    if (!value || selectionStart === this.textarea.value.length) return;
+    if (evt.type === 'keyup') return;
+
+    if (selectionStart === selectionEnd) {
+      this.textarea.value =
+        value.slice(0, selectionStart) + value.slice(selectionStart + 1);
+      this.changeTextareaSelection(selectionStart);
+    } else {
+      this.textarea.value =
+        value.slice(0, selectionStart) + value.slice(selectionEnd);
+      this.changeTextareaSelection(selectionStart);
+    }
   }
 
   onKeyPressed(evt, id) {
@@ -308,6 +342,12 @@ class Keyboard {
       this.textarea.selectionEnd,
       'end',
     );
+    this.textarea.focus();
+  }
+
+  changeTextareaSelection(value) {
+    this.textarea.selectionStart = value;
+    this.textarea.selectionEnd = this.textarea.selectionStart;
     this.textarea.focus();
   }
 
