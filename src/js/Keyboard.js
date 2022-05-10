@@ -14,12 +14,16 @@ class Keyboard {
     this.capsLock = false;
 
     this.init = this.init.bind(this);
-    this.handelEvent = this.handelEvent.bind(this);
+    this.handleEvent = this.handleEvent.bind(this);
     this.handleMouseEvent = this.handleMouseEvent.bind(this);
+    this.handleAltLeft = this.handleAltLeft.bind(this);
   }
 
-  handelEvent(evt) {
-    console.log(JSON.stringify(evt));
+  handleEvent(evt) {
+    if (evt.type === 'visibilitychange') {
+      this.handleBlur();
+    }
+
     const { code: id } = evt;
     switch (id) {
       case 'CapsLock':
@@ -88,14 +92,27 @@ class Keyboard {
       this.currId = evt.target.parentNode.id.replace(/\s/g, '');
     }
     if (evt.type === 'mousedown') {
-      this.handelEvent(
+      this.handleEvent(
         new KeyboardEvent('keydown', { code: this.currId, key: this.currId }),
       );
     } else {
-      this.handelEvent(
+      this.handleEvent(
         new KeyboardEvent('keyup', { code: this.currId, key: this.currId }),
       );
     }
+  }
+
+  handleBlur() {
+    // console.log('dada');
+    if (document.visibilityState === 'visible') {
+      this.keys.get('AltLeft').keyPressed = !this.keys.get('AltLeft').keyPressed;
+      this.keys.get('Tab').keyPressed = !this.keys.get('Tab').keyPressed;
+      return;
+    }
+    document.getElementById('AltLeft').classList.remove('key-pressed');
+    setTimeout(() => {
+      document.getElementById('Tab').classList.toggle('key-pressed');
+    }, 0);
   }
 
   handleCapsLock(evt, id) {
@@ -246,11 +263,8 @@ class Keyboard {
   }
 
   onLanguageChange(type) {
-    console.log(localStorage.lang, type);
-
     if (type !== 'ON_PAGE_RELOAD') {
       localStorage.lang = localStorage.lang === 'en' ? 'ru' : 'en';
-      console.log(localStorage.lang, type);
     }
 
     this.keyLettersEn.forEach((letter) => {
@@ -359,16 +373,16 @@ class Keyboard {
     this.onShiftKeys = document.querySelectorAll('.behave-on-shift');
 
     if (localStorage.lang === null) {
-      console.log(localStorage.lang);
       localStorage.setItem('lang', 'en');
     } else if (localStorage.lang === 'ru') {
       this.onLanguageChange('ON_PAGE_RELOAD');
     }
 
-    document.addEventListener('keydown', this.handelEvent);
-    document.addEventListener('keyup', this.handelEvent);
+    document.addEventListener('keydown', this.handleEvent);
+    document.addEventListener('keyup', this.handleEvent);
     document.addEventListener('mousedown', this.handleMouseEvent);
     document.addEventListener('mouseup', this.handleMouseEvent);
+    window.addEventListener('visibilitychange', this.handleEvent);
 
     this.textarea = document.querySelector('.keyboard-textarea');
     this.textarea.focus();
