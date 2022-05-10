@@ -16,15 +16,6 @@ class Keyboard {
     this.init = this.init.bind(this);
     this.handelEvent = this.handelEvent.bind(this);
     this.handleMouseEvent = this.handleMouseEvent.bind(this);
-    this.handleCapsLock = this.handleCapsLock.bind(this);
-    this.handleTab = this.handleTab.bind(this);
-    this.handleShiftRight = this.handleShiftRight.bind(this);
-    this.handleShiftLeft = this.handleShiftLeft.bind(this);
-    this.handleBackspace = this.handleBackspace.bind(this);
-    this.handleCapsLock = this.handleCapsLock.bind(this);
-    this.handleDefault = this.handleDefault.bind(this);
-    this.handleArrow = this.handleArrow.bind(this);
-    this.onLanguageChange = this.onLanguageChange.bind(this);
   }
 
   handelEvent(evt) {
@@ -127,8 +118,8 @@ class Keyboard {
     evt.preventDefault();
 
     if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
     document.getElementById(id).classList.toggle('key-pressed');
+
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
     this.onShiftKeys.forEach((letter) => {
       letter.classList.toggle('hide');
@@ -142,8 +133,8 @@ class Keyboard {
     evt.preventDefault();
 
     if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
     document.getElementById(id).classList.toggle('key-pressed');
+
     this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
     this.onShiftKeys.forEach((letter) => {
       letter.classList.toggle('hide');
@@ -156,10 +147,7 @@ class Keyboard {
   handleBackspace(evt, id) {
     this.textarea.focus();
 
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleControl(evt, id) {
@@ -169,20 +157,15 @@ class Keyboard {
       this.onLanguageChange();
     }
 
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleTab(evt, id) {
     evt.preventDefault();
 
     if (evt.type !== 'keyup') this.changeTextareaValue('\t');
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleSpace(evt, id) {
@@ -195,10 +178,8 @@ class Keyboard {
     }
 
     if (evt.type !== 'keyup') this.changeTextareaValue(' ');
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleArrow(evt, id) {
@@ -206,23 +187,17 @@ class Keyboard {
       this.textarea.focus();
     }
 
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleAltLeft(evt, id) {
     evt.preventDefault();
 
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-    document.getElementById(id).classList.toggle('key-pressed');
+    this.onKeyPressed(evt, id);
 
     if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
       this.onLanguageChange();
     }
-
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
   handleAltRight(evt, id) {
@@ -232,25 +207,19 @@ class Keyboard {
       document.getElementById('ControlLeft').classList.remove('key-pressed');
     }
 
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleMetaLeft(evt, id) {
     evt.preventDefault();
 
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    this.onKeyPressed(evt, id);
   }
 
   handleEnter(evt, id) {
     evt.preventDefault();
 
-    document.getElementById(id).classList.toggle('key-pressed');
+    this.onKeyPressed(evt, id);
 
     if (evt.type === 'keyup') return;
     this.changeTextareaValue('\n');
@@ -261,10 +230,38 @@ class Keyboard {
 
     if (this.keys.get(id) === undefined) return;
     if (evt.type !== 'keyup') this.changeTextareaValue(this.getInputValue(evt, id));
+    this.onKeyPressed(evt, id);
+  }
+
+  handleDelete(evt, id) {
+    this.textarea.focus();
+    this.onKeyPressed(evt, id);
+  }
+
+  onKeyPressed(evt, id) {
     if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
 
     document.getElementById(id).classList.toggle('key-pressed');
     this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+  }
+
+  onLanguageChange(type) {
+    console.log(localStorage.lang, type);
+
+    if (type !== 'ON_PAGE_RELOAD') {
+      localStorage.lang = localStorage.lang === 'en' ? 'ru' : 'en';
+      console.log(localStorage.lang, type);
+    }
+
+    this.keyLettersEn.forEach((letter) => {
+      letter.classList.toggle('hide-lang-change');
+    });
+    this.keyLettersRu.forEach((letter) => {
+      if (letter.previousSibling.classList.contains('behave-on-shift')) {
+        letter.previousSibling?.classList.toggle('hide-lang-change');
+      }
+      letter.classList.toggle('hide');
+    });
   }
 
   getInputValue(evt, id) {
@@ -290,15 +287,6 @@ class Keyboard {
     return symbol;
   }
 
-  handleDelete(evt, id) {
-    this.textarea.focus();
-
-    if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-
-    document.getElementById(id).classList.toggle('key-pressed');
-    this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
-  }
-
   changeTextareaValue(input) {
     this.textarea.setRangeText(
       input,
@@ -307,24 +295,6 @@ class Keyboard {
       'end',
     );
     this.textarea.focus();
-  }
-
-  onLanguageChange(type) {
-    console.log(localStorage.lang, type);
-    if (type !== 'ON_PAGE_RELOAD') {
-      localStorage.lang = localStorage.lang === 'en' ? 'ru' : 'en';
-      console.log(localStorage.lang, type);
-    }
-
-    this.keyLettersEn.forEach((letter) => {
-      letter.classList.toggle('hide-lang-change');
-    });
-    this.keyLettersRu.forEach((letter) => {
-      if (letter.previousSibling.classList.contains('behave-on-shift')) {
-        letter.previousSibling?.classList.toggle('hide-lang-change');
-      }
-      letter.classList.toggle('hide');
-    });
   }
 
   createKeysByRow(row, rowNum) {
