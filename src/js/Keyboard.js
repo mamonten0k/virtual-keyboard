@@ -60,16 +60,16 @@ class Keyboard {
         this.handleControl(evt, id);
         break;
       case 'ArrowUp':
-        this.handleArrow(evt, id);
+        this.handleArrowUp(evt, id);
         break;
       case 'ArrowDown':
-        this.handleArrow(evt, id);
+        this.handleArrowDown(evt, id);
         break;
       case 'ArrowLeft':
-        this.handleArrow(evt, id);
+        this.handleArrowLeft(evt, id);
         break;
       case 'ArrowRight':
-        this.handleArrow(evt, id);
+        this.handleArrowRight(evt, id);
         break;
       case 'Delete':
         this.handleDelete(evt, id);
@@ -151,12 +151,6 @@ class Keyboard {
     if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
     document.getElementById(id).classList.toggle('key-pressed');
 
-    this.keyLetters.forEach((letter) => letter.classList.toggle('uppercase-on'));
-    this.onShiftKeys.forEach((letter) => {
-      letter.classList.toggle('hide');
-      letter.previousSibling.classList.toggle('hide');
-    });
-
     this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
   }
 
@@ -173,7 +167,7 @@ class Keyboard {
   handleTab(evt, id) {
     evt.preventDefault();
 
-    if (evt.type !== 'keyup') this.changeTextareaValue('\t');
+    if (evt.type !== 'keyup') this.changeTextareaValue('    ');
 
     this.onKeyPressed(evt, id);
   }
@@ -192,12 +186,54 @@ class Keyboard {
     this.onKeyPressed(evt, id);
   }
 
-  handleArrow(evt, id) {
-    if (evt.type !== 'keyup') {
-      this.textarea.focus();
-    }
+  handleArrowUp(evt, id) {
+    evt.preventDefault();
 
     this.onKeyPressed(evt, id);
+    if (evt.type === 'keyup') return;
+
+    if (this.textarea.selectionStart <= 91) {
+      this.changeTextareaSelection(0);
+      return;
+    }
+    this.changeTextareaSelection(this.textarea.selectionStart - 91);
+  }
+
+  handleArrowDown(evt, id) {
+    evt.preventDefault();
+
+    this.onKeyPressed(evt, id);
+    if (evt.type === 'keyup') return;
+
+    if (this.textarea.value.length - this.textarea.selectionEnd < 91) {
+      this.changeTextareaSelection(this.textarea.value.length);
+      return;
+    }
+    this.changeTextareaSelection(this.textarea.selectionStart + 91);
+  }
+
+  handleArrowLeft(evt, id) {
+    evt.preventDefault();
+
+    this.onKeyPressed(evt, id);
+    if (evt.type === 'keyup') return;
+
+    if (this.textarea.selectionStart === 0) {
+      return;
+    }
+    this.changeTextareaSelection(this.textarea.selectionStart - 1);
+  }
+
+  handleArrowRight(evt, id) {
+    evt.preventDefault();
+
+    this.onKeyPressed(evt, id);
+    if (evt.type === 'keyup') return;
+
+    if (this.textarea.selectionStart === this.textarea.value.length) {
+      return;
+    }
+    this.changeTextareaSelection(this.textarea.selectionStart + 1);
   }
 
   handleAltLeft(evt, id) {
@@ -326,12 +362,21 @@ class Keyboard {
       }
     }
     if (
-      this.keys.get('ShiftLeft').keyPressed ||
-      this.keys.get('ShiftRight').keyPressed ||
+      !this.keys.get('ShiftLeft').keyPressed &&
+      !this.keys.get('ShiftRight').keyPressed &&
       this.capsLock
     ) {
       return symbol.toUpperCase();
     }
+
+    if (this.keys.get('ShiftLeft').keyPressed && !this.capsLock) {
+      return symbol.toUpperCase();
+    }
+
+    if (this.keys.get('ShiftRight').keyPressed && !this.capsLock) {
+      return symbol.toUpperCase();
+    }
+
     return symbol;
   }
 
@@ -362,6 +407,7 @@ class Keyboard {
     let rowLayout = '';
     let keysLayout = '';
 
+    /* eslint-disable-next-line */
     for (const key of this.keys.values()) {
       if (currRow !== key.row) {
         keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
