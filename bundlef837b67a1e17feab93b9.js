@@ -167,59 +167,19 @@ var Keyboard = /*#__PURE__*/function () {
     this.HtmlBuilder = new _HtmlBuilder__WEBPACK_IMPORTED_MODULE_0__["default"]();
     this.currId = '';
     this.capsLock = false;
-    this.handelEvent = this.handelEvent.bind(this);
+    this.init = this.init.bind(this);
+    this.handleEvent = this.handleEvent.bind(this);
     this.handleMouseEvent = this.handleMouseEvent.bind(this);
-    this.handleCapsLock = this.handleCapsLock.bind(this);
-    this.handleTab = this.handleTab.bind(this);
-    this.handleShiftRight = this.handleShiftRight.bind(this);
-    this.handleShiftLeft = this.handleShiftLeft.bind(this);
-    this.handleBackspace = this.handleBackspace.bind(this);
-    this.handleCapsLock = this.handleCapsLock.bind(this);
-    this.handleDefault = this.handleDefault.bind(this);
-    this.handleArrow = this.handleArrow.bind(this);
+    this.handleAltLeft = this.handleAltLeft.bind(this);
   }
 
   _createClass(Keyboard, [{
-    key: "createKeysByRow",
-    value: function createKeysByRow(row, rowNum) {
-      for (var i = 0; i < row.length; i += 1) {
-        this.keys.set(row[i].id, new _Key__WEBPACK_IMPORTED_MODULE_1__["default"](row[i], rowNum));
-      }
-    }
-  }, {
-    key: "getHTML",
-    value: function getHTML() {
-      var currRow = 0;
-      var rowLayout = '';
-      var keysLayout = '';
-
-      var _iterator = _createForOfIteratorHelper(this.keys.values()),
-          _step;
-
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var key = _step.value;
-
-          if (currRow !== key.row) {
-            keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
-            rowLayout = '';
-            currRow += 1;
-          }
-
-          rowLayout += key.getHTML();
-        }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
+    key: "handleEvent",
+    value: function handleEvent(evt) {
+      if (evt.type === 'visibilitychange') {
+        this.handleBlur();
       }
 
-      keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
-      return keysLayout;
-    }
-  }, {
-    key: "handelEvent",
-    value: function handelEvent(evt) {
       var id = evt.code;
 
       switch (id) {
@@ -268,19 +228,19 @@ var Keyboard = /*#__PURE__*/function () {
           break;
 
         case 'ArrowUp':
-          this.handleArrow(evt, id);
+          this.handleArrowUp(evt, id);
           break;
 
         case 'ArrowDown':
-          this.handleArrow(evt, id);
+          this.handleArrowDown(evt, id);
           break;
 
         case 'ArrowLeft':
-          this.handleArrow(evt, id);
+          this.handleArrowLeft(evt, id);
           break;
 
         case 'ArrowRight':
-          this.handleArrow(evt, id);
+          this.handleArrowRight(evt, id);
           break;
 
         case 'Delete':
@@ -308,14 +268,30 @@ var Keyboard = /*#__PURE__*/function () {
       }
 
       if (evt.type === 'mousedown') {
-        this.handelEvent(new KeyboardEvent('keydown', {
-          code: this.currId
+        this.handleEvent(new KeyboardEvent('keydown', {
+          code: this.currId,
+          key: this.currId
         }));
       } else {
-        this.handelEvent(new KeyboardEvent('keyup', {
-          code: this.currId
+        this.handleEvent(new KeyboardEvent('keyup', {
+          code: this.currId,
+          key: this.currId
         }));
       }
+    }
+  }, {
+    key: "handleBlur",
+    value: function handleBlur() {
+      if (document.visibilityState === 'visible') {
+        this.keys.get('AltLeft').keyPressed = !this.keys.get('AltLeft').keyPressed;
+        this.keys.get('Tab').keyPressed = !this.keys.get('Tab').keyPressed;
+        return;
+      }
+
+      document.getElementById('AltLeft').classList.remove('key-pressed');
+      setTimeout(function () {
+        document.getElementById('Tab').classList.toggle('key-pressed');
+      }, 0);
     }
   }, {
     key: "handleCapsLock",
@@ -356,21 +332,6 @@ var Keyboard = /*#__PURE__*/function () {
       evt.preventDefault();
       if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
       document.getElementById(id).classList.toggle('key-pressed');
-      this.keyLetters.forEach(function (letter) {
-        return letter.classList.toggle('uppercase-on');
-      });
-      this.onShiftKeys.forEach(function (letter) {
-        letter.classList.toggle('hide');
-        letter.previousSibling.classList.toggle('hide');
-      });
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
-    }
-  }, {
-    key: "handleBackspace",
-    value: function handleBackspace(evt, id) {
-      this.textarea.focus();
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
       this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
     }
   }, {
@@ -379,32 +340,17 @@ var Keyboard = /*#__PURE__*/function () {
       evt.preventDefault();
 
       if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
-        this.keyLettersEn.forEach(function (letter) {
-          letter.classList.toggle('hide-lang-change');
-        });
-        this.keyLettersRu.forEach(function (letter) {
-          if (letter.previousSibling.classList.contains('behave-on-shift')) {
-            var _letter$previousSibli;
-
-            (_letter$previousSibli = letter.previousSibling) === null || _letter$previousSibli === void 0 ? void 0 : _letter$previousSibli.classList.toggle('hide-lang-change');
-          }
-
-          letter.classList.toggle('hide');
-        });
+        this.onLanguageChange();
       }
 
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      this.onKeyPressed(evt, id);
     }
   }, {
     key: "handleTab",
     value: function handleTab(evt, id) {
       evt.preventDefault();
-      if (evt.type !== 'keyup') this.changeTextareaValue('\t');
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      if (evt.type !== 'keyup') this.changeTextareaValue('    ');
+      this.onKeyPressed(evt, id);
     }
   }, {
     key: "handleSpace",
@@ -418,44 +364,71 @@ var Keyboard = /*#__PURE__*/function () {
       }
 
       if (evt.type !== 'keyup') this.changeTextareaValue(' ');
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      this.onKeyPressed(evt, id);
     }
   }, {
-    key: "handleArrow",
-    value: function handleArrow(evt, id) {
-      if (evt.type !== 'keyup') {
-        this.textarea.focus();
+    key: "handleArrowUp",
+    value: function handleArrowUp(evt, id) {
+      evt.preventDefault();
+      this.onKeyPressed(evt, id);
+      if (evt.type === 'keyup') return;
+
+      if (this.textarea.selectionStart <= 91) {
+        this.changeTextareaSelection(0);
+        return;
       }
 
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      this.changeTextareaSelection(this.textarea.selectionStart - 91);
+    }
+  }, {
+    key: "handleArrowDown",
+    value: function handleArrowDown(evt, id) {
+      evt.preventDefault();
+      this.onKeyPressed(evt, id);
+      if (evt.type === 'keyup') return;
+
+      if (this.textarea.value.length - this.textarea.selectionEnd < 91) {
+        this.changeTextareaSelection(this.textarea.value.length);
+        return;
+      }
+
+      this.changeTextareaSelection(this.textarea.selectionStart + 91);
+    }
+  }, {
+    key: "handleArrowLeft",
+    value: function handleArrowLeft(evt, id) {
+      evt.preventDefault();
+      this.onKeyPressed(evt, id);
+      if (evt.type === 'keyup') return;
+
+      if (this.textarea.selectionStart === 0) {
+        return;
+      }
+
+      this.changeTextareaSelection(this.textarea.selectionStart - 1);
+    }
+  }, {
+    key: "handleArrowRight",
+    value: function handleArrowRight(evt, id) {
+      evt.preventDefault();
+      this.onKeyPressed(evt, id);
+      if (evt.type === 'keyup') return;
+
+      if (this.textarea.selectionStart === this.textarea.value.length) {
+        return;
+      }
+
+      this.changeTextareaSelection(this.textarea.selectionStart + 1);
     }
   }, {
     key: "handleAltLeft",
     value: function handleAltLeft(evt, id) {
       evt.preventDefault();
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
+      this.onKeyPressed(evt, id);
 
       if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
-        this.keyLettersEn.forEach(function (letter) {
-          letter.classList.toggle('hide-lang-change');
-        });
-        this.keyLettersRu.forEach(function (letter) {
-          if (letter.previousSibling.classList.contains('behave-on-shift')) {
-            var _letter$previousSibli2;
-
-            (_letter$previousSibli2 = letter.previousSibling) === null || _letter$previousSibli2 === void 0 ? void 0 : _letter$previousSibli2.classList.toggle('hide-lang-change');
-          }
-
-          letter.classList.toggle('hide');
-        });
+        this.onLanguageChange();
       }
-
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
     }
   }, {
     key: "handleAltRight",
@@ -466,23 +439,19 @@ var Keyboard = /*#__PURE__*/function () {
         document.getElementById('ControlLeft').classList.remove('key-pressed');
       }
 
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      this.onKeyPressed(evt, id);
     }
   }, {
     key: "handleMetaLeft",
     value: function handleMetaLeft(evt, id) {
       evt.preventDefault();
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+      this.onKeyPressed(evt, id);
     }
   }, {
     key: "handleEnter",
     value: function handleEnter(evt, id) {
       evt.preventDefault();
-      document.getElementById(id).classList.toggle('key-pressed');
+      this.onKeyPressed(evt, id);
       if (evt.type === 'keyup') return;
       this.changeTextareaValue('\n');
     }
@@ -492,9 +461,72 @@ var Keyboard = /*#__PURE__*/function () {
       evt.preventDefault();
       if (this.keys.get(id) === undefined) return;
       if (evt.type !== 'keyup') this.changeTextareaValue(this.getInputValue(evt, id));
+      this.onKeyPressed(evt, id);
+    }
+  }, {
+    key: "handleBackspace",
+    value: function handleBackspace(evt, id) {
+      evt.preventDefault();
+      this.onKeyPressed(evt, id);
+      var value = this.textarea.value;
+      var selectionStart = this.textarea.selectionStart;
+      var selectionEnd = this.textarea.selectionEnd;
+      if (!value || selectionStart === 0) return;
+      if (evt.type === 'keyup') return;
+
+      if (selectionStart === selectionEnd) {
+        this.textarea.value = value.slice(0, selectionStart - 1) + value.slice(selectionEnd);
+        this.changeTextareaSelection(selectionStart - 1);
+      } else {
+        this.textarea.value = value.slice(0, selectionStart) + value.slice(selectionEnd);
+        this.changeTextareaSelection(selectionStart);
+      }
+    }
+  }, {
+    key: "handleDelete",
+    value: function handleDelete(evt, id) {
+      evt.preventDefault();
+      this.onKeyPressed(evt, id);
+      var value = this.textarea.value;
+      var selectionStart = this.textarea.selectionStart;
+      var selectionEnd = this.textarea.selectionEnd;
+      if (!value || selectionStart === this.textarea.value.length) return;
+      if (evt.type === 'keyup') return;
+
+      if (selectionStart === selectionEnd) {
+        this.textarea.value = value.slice(0, selectionStart) + value.slice(selectionStart + 1);
+        this.changeTextareaSelection(selectionStart);
+      } else {
+        this.textarea.value = value.slice(0, selectionStart) + value.slice(selectionEnd);
+        this.changeTextareaSelection(selectionStart);
+      }
+    }
+  }, {
+    key: "onKeyPressed",
+    value: function onKeyPressed(evt, id) {
       if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
       document.getElementById(id).classList.toggle('key-pressed');
       this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
+    }
+  }, {
+    key: "onLanguageChange",
+    value: function onLanguageChange(type) {
+      if (type !== 'ON_PAGE_RELOAD') {
+        localStorage.lang = localStorage.lang === 'en' ? 'ru' : 'en';
+      }
+
+      this.keyLettersEn.forEach(function (letter) {
+        letter.classList.toggle('hide-lang-change');
+      });
+      this.keyLettersRu.forEach(function (letter) {
+        if (letter.previousSibling.classList.contains('behave-on-shift')) {
+          var _letter$previousSibli;
+
+          (_letter$previousSibli = letter.previousSibling) === null || _letter$previousSibli === void 0 ? void 0 : _letter$previousSibli.classList.toggle('hide-lang-change');
+        }
+
+        letter.classList.toggle('hide');
+      });
     }
   }, {
     key: "getInputValue",
@@ -509,19 +541,19 @@ var Keyboard = /*#__PURE__*/function () {
         }
       }
 
-      if (this.keys.get('ShiftLeft').keyPressed || this.keys.get('ShiftRight').keyPressed || this.capsLock) {
+      if (!this.keys.get('ShiftLeft').keyPressed && !this.keys.get('ShiftRight').keyPressed && this.capsLock) {
+        return symbol.toUpperCase();
+      }
+
+      if (this.keys.get('ShiftLeft').keyPressed && !this.capsLock) {
+        return symbol.toUpperCase();
+      }
+
+      if (this.keys.get('ShiftRight').keyPressed && !this.capsLock) {
         return symbol.toUpperCase();
       }
 
       return symbol;
-    }
-  }, {
-    key: "handleDelete",
-    value: function handleDelete(evt, id) {
-      this.textarea.focus();
-      if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
-      document.getElementById(id).classList.toggle('key-pressed');
-      this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
     }
   }, {
     key: "changeTextareaValue",
@@ -530,11 +562,58 @@ var Keyboard = /*#__PURE__*/function () {
       this.textarea.focus();
     }
   }, {
+    key: "changeTextareaSelection",
+    value: function changeTextareaSelection(value) {
+      this.textarea.selectionStart = value;
+      this.textarea.selectionEnd = this.textarea.selectionStart;
+      this.textarea.focus();
+    }
+  }, {
+    key: "createKeysByRow",
+    value: function createKeysByRow(row, rowNum) {
+      for (var i = 0; i < row.length; i += 1) {
+        this.keys.set(row[i].id, new _Key__WEBPACK_IMPORTED_MODULE_1__["default"](row[i], rowNum));
+      }
+    }
+  }, {
+    key: "getHTML",
+    value: function getHTML() {
+      var currRow = 0;
+      var rowLayout = '';
+      var keysLayout = '';
+      /* eslint-disable-next-line */
+
+      var _iterator = _createForOfIteratorHelper(this.keys.values()),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var key = _step.value;
+
+          if (currRow !== key.row) {
+            keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
+            rowLayout = '';
+            currRow += 1;
+          }
+
+          rowLayout += key.getHTML();
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
+      return keysLayout;
+    }
+  }, {
     key: "init",
     value: function init() {
       document.body.innerHTML += this.HtmlBuilder.build('div', 'keyboard', ' ');
       var wrapper = document.querySelector('.keyboard');
       wrapper.innerHTML += this.HtmlBuilder.build('h1', 'rss-title', 'RSS Virtual Keyboard');
+      wrapper.innerHTML += this.HtmlBuilder.build('div', 'rss-description', "\u0421\u043C\u0435\u043D\u0430 \u044F\u0437\u044B\u043A\u0430: <b>LeftCtrl+LeftAlt</b>. \u0422\u0440\u0430\u0431\u043B \u0441 \u0437\u0430\u043B\u0438\u043F\u0430\u043D\u0438\u0435\u043C <b>Ctrl</b> \u043F\u0440\u0438 \u043A\u043B\u0430\u0446\u0430\u043D\u0438\u0438 <b>Alt</b> \u0438 <b>Shift</b> (\u043B\u044E\u0431\u044B\u0445, \u043D\u043E \u043E\u0434\u043D\u043E\u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E) - \u043D\u0435 \u0431\u0430\u0433, \u0430 \u0444\u0438\u0448\u043A\u0430 \u0432\u0438\u043D\u0434\u043E\u0432\u0441.\n      \u0421\u0435\u0440\u044C\u0435\u0437\u043D\u043E, Windows \u0442\u0430\u043A \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442, \u043F\u043E\u0441\u043B\u0435 <b>Ctrl+Alt</b> \u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u043E \u0442\u0440\u0438\u0433\u0433\u0435\u0440\u0438\u0442\u0441\u044F <b>Ctrl</b>, \u044F \u043D\u0435 \u0432\u0438\u043D\u043E\u0432\u0430\u0442.");
       wrapper.innerHTML += this.HtmlBuilder.build('textarea', 'keyboard-textarea', '', '', 'single');
 
       for (var row = 0; row < this.keysData.length; row += 1) {
@@ -542,15 +621,22 @@ var Keyboard = /*#__PURE__*/function () {
       }
 
       wrapper.innerHTML += this.getHTML();
-      wrapper.innerHTML += this.HtmlBuilder.build('div', 'rss-description', "\u042F\u0437\u044B\u043A \u043C\u0435\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 <i><b>LeftCtrl+LeftAlt</b></i>. \u0422\u0440\u0430\u0431\u043B \u0441 \u0437\u0430\u043B\u0438\u043F\u0430\u043D\u0438\u0435\u043C Ctrl \u043F\u0440\u0438 \u043A\u043B\u0430\u0446\u0430\u043D\u0438\u0438 Alt \u0438 Shift (\u043B\u044E\u0431\u044B\u0445, \u043D\u043E \u043E\u0434\u043D\u043E\u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E) - \u043D\u0435 \u0431\u0430\u0433, \u0430 \u0444\u0438\u0447\u0430 \u0432\u0438\u043D\u0434\u043E\u0432\u0441.\n      \u0421\u0435\u0440\u044C\u0435\u0437\u043D\u043E, Windows \u0442\u0430\u043A \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442, \u043F\u043E\u0441\u043B\u0435 <i><b>Ctrl+Alt</b></i> \u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u043E \u0442\u0440\u0438\u0433\u0433\u0435\u0440\u0438\u0442\u0441\u044F Ctrl, \u044F \u043D\u0435 \u0432\u0438\u043D\u043E\u0432\u0430\u0442. Del \u0438 Backspace \u0434\u043B\u044F \u043C\u044B\u0448\u043A\u0438 \u044F \u0434\u043E\u0434\u0435\u043B\u0430\u044E \u0443\u0442\u0440\u043E\u043C, \u0435\u0441\u043B\u0438 \u043F\u043E\u0432\u0440\u0435\u043C\u0435\u043D\u0438\u0442\u0435 \u0441 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u043E\u0439 \u0434\u043E \u0432\u0435\u0447\u0435\u0440\u0430, \u0431\u0443\u0434\u0443 \u0431\u043B\u0430\u0433\u043E\u0434\u0430\u0440\u0435\u043D.");
       this.keyLetters = document.querySelectorAll('.letter-key');
       this.keyLettersEn = document.querySelectorAll('.letter-en');
       this.keyLettersRu = document.querySelectorAll('.letter-ru');
       this.onShiftKeys = document.querySelectorAll('.behave-on-shift');
-      document.addEventListener('keydown', this.handelEvent);
-      document.addEventListener('keyup', this.handelEvent);
+
+      if (localStorage.lang === null) {
+        localStorage.setItem('lang', 'en');
+      } else if (localStorage.lang === 'ru') {
+        this.onLanguageChange('ON_PAGE_RELOAD');
+      }
+
+      document.addEventListener('keydown', this.handleEvent);
+      document.addEventListener('keyup', this.handleEvent);
       document.addEventListener('mousedown', this.handleMouseEvent);
       document.addEventListener('mouseup', this.handleMouseEvent);
+      window.addEventListener('visibilitychange', this.handleEvent);
       this.textarea = document.querySelector('.keyboard-textarea');
       this.textarea.focus();
     }
@@ -914,7 +1000,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".keyboard {\n  width: 900px;\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n.keyboard-textarea {\n  border-radius: 3px;\n  padding: 10px;\n  resize: none;\n  outline: none;\n  font-size: 16px;\n  letter-spacing: 0.05rem;\n  height: 200px;\n  margin-bottom: 20px;\n  white-space: pre-wrap;\n}\n.keyboard-textarea::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n  background: none;\n}\n.keyboard-textarea::-webkit-scrollbar-thumb {\n  background-color: rgb(53, 84, 239);\n  height: 5px;\n  border-radius: 2px;\n}\n\n.row-wrap {\n  display: flex;\n  gap: 8px;\n}\n.row:last-child {\n  width: 810px;\n}\n\n.key {\n  flex: 1;\n  min-width: 48px;\n  position: relative;\n  user-select: none;\n  text-align: center;\n  padding: 15px;\n  color: white;\n  font-weight: 500;\n  border-radius: 3px;\n  background-color: rgb(80, 82, 91);\n  transition: 0.1s ease-out;\n}\n.key:hover {\n  cursor: pointer;\n  background-color: rgba(28, 43, 116, 0.686);\n  color: white;\n}\n.key:nth-child(7) .digit-back {\n  top: 0;\n  font-size: 16px;\n}\n\n.rss-description {\n  padding-top: 10px;\n  font-size: 18px;\n  line-height: 120%;\n  letter-spacing: 1px;\n  text-align: justify;\n}\n\n.key-space {\n  flex: 100%;\n}\n\n.hide {\n  display: none;\n}\n\n.hide-lang-change {\n  display: none;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter {\n  flex: 100%;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter,\n.key-ctrl,\n.key-win,\n.key-alt,\n.key-space,\n.key-arrow-up,\n.key-arrow-down,\n.key-arrow-right,\n.key-arrow-left {\n  background-color: rgb(53, 54, 66);\n  color: rgb(217, 217, 217);\n}\n\n.key-ctrl,\n.key-win,\n.key-alt {\n  min-width: 60px;\n}\n\n.caps-highlight,\n.key-pressed {\n  background-color: rgb(53, 84, 239);\n  color: white;\n  transform: scale(0.95);\n}\n.caps-highlight:hover,\n.key-pressed:hover {\n  cursor: pointer;\n  background-color: rgb(53, 84, 239);\n}\n\n.caps-highlight::before {\n  content: \"\";\n  position: absolute;\n  top: 8px;\n  right: 8px;\n  width: 5px;\n  height: 5px;\n  border-radius: 50%;\n  background-color: white;\n}\n\n.uppercase-on {\n  text-transform: uppercase;\n}\n\nbody {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 16px;\n}\n\n*,\n::before,\n::after {\n  box-sizing: border-box;\n}", "",{"version":3,"sources":["webpack://./src/scss/components/_keyboard.scss","webpack://./src/scss/index.scss"],"names":[],"mappings":"AAAA;EACC,YAAA;EACA,aAAA;EACA,sBAAA;EACA,SAAA;ACCD;ADCC;EACC,kBAAA;EACM,aAAA;EACN,YAAA;EACA,aAAA;EACM,eAAA;EACN,uBAAA;EACA,aAAA;EAeA,mBAAA;EACA,qBAAA;ACbF;ADAQ;EACI,UAAA;EACT,WAAA;EACS,gBAAA;ACEZ;ADCQ;EACI,kCAAA;EACT,WAAA;EACS,kBAAA;ACCZ;;ADQC;EACC,aAAA;EACA,QAAA;ACLF;ADOC;EACC,YAAA;ACLF;;ADSA;EACC,OAAA;EACA,eAAA;EACA,kBAAA;EACA,iBAAA;EACA,kBAAA;EACA,aAAA;EACA,YAAA;EACA,gBAAA;EACA,kBAAA;EAMA,iCAAA;EAOA,yBAAA;ACjBD;ADKC;EACC,eAAA;EACA,0CAAA;EACA,YAAA;ACHF;ADOE;EACC,MAAA;EACA,eAAA;ACLH;;ADWA;EACC,iBAAA;EACA,eAAA;EACA,iBAAA;EACA,mBAAA;EACA,mBAAA;ACRD;;ADWA;EACC,UAAA;ACRD;;ADWA;EACC,aAAA;ACRD;;ADWA;EACC,aAAA;ACRD;;ADWA;;;;;;EAMC,UAAA;ACRD;;ADWA;;;;;;;;;;;;;;EAcC,iCAAA;EACA,yBAAA;ACRD;;ADWA;;;EAGC,eAAA;ACRD;;ADWA;;EAEC,kCAAA;EACA,YAAA;EACA,sBAAA;ACRD;ADSC;;EACC,eAAA;EACA,kCAAA;ACNF;;ADUA;EACC,WAAA;EACA,kBAAA;EACA,QAAA;EACA,UAAA;EACA,UAAA;EACA,WAAA;EACA,kBAAA;EACA,uBAAA;ACPD;;ADUA;EACC,yBAAA;ACPD;;AAvIA;EACC,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,yCAAA;EACA,eAAA;AA0ID;;AAvIA;;;EAGC,sBAAA;AA0ID","sourcesContent":[".keyboard {\n\twidth: 900px;\n\tdisplay: flex;\n\tflex-direction: column;\n\tgap: 10px;\n\n\t&-textarea {\n\t\tborder-radius: 3px;\n        padding: 10px;\n\t\tresize: none;\n\t\toutline: none;\n        font-size: 16px;\n\t\tletter-spacing: .05rem;\n\t\theight: 200px;\n\n\n        &::-webkit-scrollbar {\n            width: 5px;\n\t\t\theight: 5px;\n            background: none;\n        }\n\n        &::-webkit-scrollbar-thumb {\n            background-color: rgb(53, 84, 239);\n\t\t\theight: 5px;\n            border-radius: 2px;\n        }\n\n\t\tmargin-bottom: 20px;\n\t\twhite-space: pre-wrap;\n\t}\n}\n\n.row {\n\t&-wrap {\n\t\tdisplay: flex;\n\t\tgap: 8px;\n\t}\n\t&:last-child {\n\t\twidth: 810px;\n\t}\n}\n\n.key {\n\tflex: 1;\n\tmin-width: 48px;\n\tposition: relative;\n\tuser-select: none;\n\ttext-align: center;\n\tpadding:  15px;\n\tcolor: white;\n\tfont-weight: 500;\n\tborder-radius: 3px;\n\t&:hover {\n\t\tcursor: pointer;\n\t\tbackground-color: rgba(28, 43, 116, 0.686);\n\t\tcolor: white;\n\t}\n\tbackground-color: rgb(80, 82, 91);\n\t&:nth-child(7) {\n\t\t.digit-back {\n\t\t\ttop: 0;\n\t\t\tfont-size: 16px;\n\t\t}\n\t}\n\ttransition: .1s ease-out;\n}\n\n.rss-description {\n\tpadding-top: 10px;\n\tfont-size: 18px;\n\tline-height: 120%;\n\tletter-spacing: 1px;\n\ttext-align:justify;\n}\n\n.key-space {\n\tflex: 100%;\n}\n\n.hide {\n\tdisplay: none;\n}\n\n.hide-lang-change {\n\tdisplay: none;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter  {\n\tflex: 100%;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter,\n.key-ctrl,\n.key-win,\n.key-alt,\n.key-space,\n.key-arrow-up,\n.key-arrow-down,\n.key-arrow-right,\n.key-arrow-left {\n\tbackground-color: rgb(53, 54, 66);\n\tcolor: rgb(217, 217, 217); \n}\n\n.key-ctrl,\n.key-win,\n.key-alt {\n\tmin-width: 60px;\n}\n\n.caps-highlight,\n.key-pressed {\n\tbackground-color: rgb(53, 84, 239);\n\tcolor: white;\n\ttransform: scale(0.95);\n\t&:hover {\n\t\tcursor: pointer;\n\t\tbackground-color: rgb(53, 84, 239);\n\t}\n}\n\n.caps-highlight::before {\n\tcontent: \"\";\n\tposition: absolute;\n\ttop: 8px;\n\tright: 8px;\n\twidth: 5px;\n\theight: 5px;\n\tborder-radius: 50%;\n\tbackground-color: white;\n}\n\n.uppercase-on {\n\ttext-transform: uppercase;\n}\n","@import \"./components/keyboard\";\n\nbody {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: center;\n\tfont-family: Arial, Helvetica, sans-serif;\n\tfont-size: 16px;\n}\n\n*,\n::before,\n::after {\n\tbox-sizing: border-box;\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ".keyboard {\n  width: 900px;\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n.keyboard-textarea {\n  border-radius: 3px;\n  padding: 10px;\n  resize: none;\n  outline: none;\n  font-size: 16px;\n  letter-spacing: 0.05rem;\n  height: 200px;\n  margin-bottom: 20px;\n  white-space: pre-wrap;\n}\n.keyboard-textarea::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n  background: none;\n}\n.keyboard-textarea::-webkit-scrollbar-thumb {\n  background-color: rgb(53, 84, 239);\n  height: 5px;\n  border-radius: 2px;\n}\n\n.row-wrap {\n  display: flex;\n  gap: 8px;\n}\n.row:last-child {\n  width: 810px;\n}\n\n.key {\n  flex: 1;\n  min-width: 48px;\n  position: relative;\n  user-select: none;\n  text-align: center;\n  padding: 15px;\n  color: white;\n  font-weight: 500;\n  border-radius: 3px;\n  background-color: rgb(80, 82, 91);\n  transition: 0.1s ease-out;\n}\n.key:hover {\n  cursor: pointer;\n  background-color: rgba(28, 43, 116, 0.686);\n  color: white;\n}\n.key:nth-child(7) .digit-back {\n  top: 0;\n  font-size: 16px;\n}\n\n.rss-description {\n  font-size: 18px;\n  line-height: 120%;\n  letter-spacing: 1px;\n  margin-bottom: 10px;\n  text-align: justify;\n}\n\n.key-space {\n  flex: 100%;\n}\n\n.hide {\n  display: none;\n}\n\n.hide-lang-change {\n  display: none;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter {\n  flex: 100%;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter,\n.key-ctrl,\n.key-win,\n.key-alt,\n.key-space,\n.key-arrow-up,\n.key-arrow-down,\n.key-arrow-right,\n.key-arrow-left {\n  background-color: rgb(53, 54, 66);\n  color: rgb(217, 217, 217);\n}\n\n.key-ctrl,\n.key-win,\n.key-alt {\n  min-width: 60px;\n}\n\n.caps-highlight,\n.key-pressed {\n  background-color: rgb(53, 84, 239);\n  color: white;\n  transform: scale(0.95);\n}\n.caps-highlight:hover,\n.key-pressed:hover {\n  cursor: pointer;\n  background-color: rgb(53, 84, 239);\n}\n\n.caps-highlight::before {\n  content: \"\";\n  position: absolute;\n  top: 8px;\n  right: 8px;\n  width: 5px;\n  height: 5px;\n  border-radius: 50%;\n  background-color: white;\n}\n\n.uppercase-on {\n  text-transform: uppercase;\n}\n\nbody {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-family: Arial, Helvetica, sans-serif;\n  font-size: 16px;\n}\n\n*,\n::before,\n::after {\n  box-sizing: border-box;\n}", "",{"version":3,"sources":["webpack://./src/scss/components/_keyboard.scss","webpack://./src/scss/index.scss"],"names":[],"mappings":"AAAA;EACC,YAAA;EACA,aAAA;EACA,sBAAA;EACA,SAAA;ACCD;ADCC;EACC,kBAAA;EACM,aAAA;EACN,YAAA;EACA,aAAA;EACM,eAAA;EACN,uBAAA;EACA,aAAA;EAeA,mBAAA;EACA,qBAAA;ACbF;ADAQ;EACI,UAAA;EACT,WAAA;EACS,gBAAA;ACEZ;ADCQ;EACI,kCAAA;EACT,WAAA;EACS,kBAAA;ACCZ;;ADSC;EACC,aAAA;EACA,QAAA;ACNF;ADQC;EACC,YAAA;ACNF;;ADUA;EACC,OAAA;EACA,eAAA;EACA,kBAAA;EACA,iBAAA;EACA,kBAAA;EACA,aAAA;EACA,YAAA;EACA,gBAAA;EACA,kBAAA;EAMA,iCAAA;EAOA,yBAAA;AClBD;ADMC;EACC,eAAA;EACA,0CAAA;EACA,YAAA;ACJF;ADQE;EACC,MAAA;EACA,eAAA;ACNH;;ADYA;EACC,eAAA;EACA,iBAAA;EACA,mBAAA;EACA,mBAAA;EACA,mBAAA;ACTD;;ADYA;EACC,UAAA;ACTD;;ADYA;EACC,aAAA;ACTD;;ADYA;EACC,aAAA;ACTD;;ADYA;;;;;;EAMC,UAAA;ACTD;;ADYA;;;;;;;;;;;;;;EAcC,iCAAA;EACA,yBAAA;ACTD;;ADYA;;;EAGC,eAAA;ACTD;;ADYA;;EAEC,kCAAA;EACA,YAAA;EACA,sBAAA;ACTD;ADUC;;EACC,eAAA;EACA,kCAAA;ACPF;;ADWA;EACC,WAAA;EACA,kBAAA;EACA,QAAA;EACA,UAAA;EACA,UAAA;EACA,WAAA;EACA,kBAAA;EACA,uBAAA;ACRD;;ADWA;EACC,yBAAA;ACRD;;AAvIA;EACC,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,yCAAA;EACA,eAAA;AA0ID;;AAvIA;;;EAGC,sBAAA;AA0ID","sourcesContent":[".keyboard {\n\twidth: 900px;\n\tdisplay: flex;\n\tflex-direction: column;\n\tgap: 10px;\n\n\t&-textarea {\n\t\tborder-radius: 3px;\n        padding: 10px;\n\t\tresize: none;\n\t\toutline: none;\n        font-size: 16px;\n\t\tletter-spacing: .05rem;\n\t\theight: 200px;\n\n\n        &::-webkit-scrollbar {\n            width: 5px;\n\t\t\theight: 5px;\n            background: none;\n        }\n\n        &::-webkit-scrollbar-thumb {\n            background-color: rgb(53, 84, 239);\n\t\t\theight: 5px;\n            border-radius: 2px;\n        }\n\n\t\tmargin-bottom: 20px;\n\t\twhite-space: pre-wrap;\n\t}\n\n}\n\n.row {\n\t&-wrap {\n\t\tdisplay: flex;\n\t\tgap: 8px;\n\t}\n\t&:last-child {\n\t\twidth: 810px;\n\t}\n}\n\n.key {\n\tflex: 1;\n\tmin-width: 48px;\n\tposition: relative;\n\tuser-select: none;\n\ttext-align: center;\n\tpadding:  15px;\n\tcolor: white;\n\tfont-weight: 500;\n\tborder-radius: 3px;\n\t&:hover {\n\t\tcursor: pointer;\n\t\tbackground-color: rgba(28, 43, 116, 0.686);\n\t\tcolor: white;\n\t}\n\tbackground-color: rgb(80, 82, 91);\n\t&:nth-child(7) {\n\t\t.digit-back {\n\t\t\ttop: 0;\n\t\t\tfont-size: 16px;\n\t\t}\n\t}\n\ttransition: .1s ease-out;\n}\n\n.rss-description {\n\tfont-size: 18px;\n\tline-height: 120%;\n\tletter-spacing: 1px;\n\tmargin-bottom: 10px;\n\ttext-align:justify;\n}\n\n.key-space {\n\tflex: 100%;\n}\n\n.hide {\n\tdisplay: none;\n}\n\n.hide-lang-change {\n\tdisplay: none;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter  {\n\tflex: 100%;\n}\n\n.key-tab,\n.key-del,\n.key-backspace,\n.key-caps,\n.key-shift,\n.key-enter,\n.key-ctrl,\n.key-win,\n.key-alt,\n.key-space,\n.key-arrow-up,\n.key-arrow-down,\n.key-arrow-right,\n.key-arrow-left {\n\tbackground-color: rgb(53, 54, 66);\n\tcolor: rgb(217, 217, 217); \n}\n\n.key-ctrl,\n.key-win,\n.key-alt {\n\tmin-width: 60px;\n}\n\n.caps-highlight,\n.key-pressed {\n\tbackground-color: rgb(53, 84, 239);\n\tcolor: white;\n\ttransform: scale(0.95);\n\t&:hover {\n\t\tcursor: pointer;\n\t\tbackground-color: rgb(53, 84, 239);\n\t}\n}\n\n.caps-highlight::before {\n\tcontent: \"\";\n\tposition: absolute;\n\ttop: 8px;\n\tright: 8px;\n\twidth: 5px;\n\theight: 5px;\n\tborder-radius: 50%;\n\tbackground-color: white;\n}\n\n.uppercase-on {\n\ttext-transform: uppercase;\n}\n","@import \"./components/keyboard\";\n\nbody {\n\tdisplay: flex;\n\talign-items: center;\n\tjustify-content: center;\n\tfont-family: Arial, Helvetica, sans-serif;\n\tfont-size: 16px;\n}\n\n*,\n::before,\n::after {\n\tbox-sizing: border-box;\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1506,4 +1592,4 @@ __webpack_require__.r(__webpack_exports__);
 
 /******/ })()
 ;
-//# sourceMappingURL=bundled260fc8134fb0ddfb84f.js.map
+//# sourceMappingURL=bundlef837b67a1e17feab93b9.js.map
