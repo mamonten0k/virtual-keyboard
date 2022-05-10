@@ -13,6 +13,7 @@ class Keyboard {
     this.currId = '';
     this.capsLock = false;
 
+    this.init = this.init.bind(this);
     this.handelEvent = this.handelEvent.bind(this);
     this.handleMouseEvent = this.handleMouseEvent.bind(this);
     this.handleCapsLock = this.handleCapsLock.bind(this);
@@ -23,33 +24,11 @@ class Keyboard {
     this.handleCapsLock = this.handleCapsLock.bind(this);
     this.handleDefault = this.handleDefault.bind(this);
     this.handleArrow = this.handleArrow.bind(this);
-  }
-
-  createKeysByRow(row, rowNum) {
-    for (let i = 0; i < row.length; i += 1) {
-      this.keys.set(row[i].id, new Key(row[i], rowNum));
-    }
-  }
-
-  getHTML() {
-    let currRow = 0;
-    let rowLayout = '';
-    let keysLayout = '';
-
-    for (const key of this.keys.values()) {
-      if (currRow !== key.row) {
-        keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
-        rowLayout = '';
-        currRow += 1;
-      }
-      rowLayout += key.getHTML();
-    }
-
-    keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
-    return keysLayout;
+    this.onLanguageChange = this.onLanguageChange.bind(this);
   }
 
   handelEvent(evt) {
+    console.log(JSON.stringify(evt));
     const { code: id } = evt;
     switch (id) {
       case 'CapsLock':
@@ -118,9 +97,13 @@ class Keyboard {
       this.currId = evt.target.parentNode.id.replace(/\s/g, '');
     }
     if (evt.type === 'mousedown') {
-      this.handelEvent(new KeyboardEvent('keydown', { code: this.currId }));
+      this.handelEvent(
+        new KeyboardEvent('keydown', { code: this.currId, key: this.currId }),
+      );
     } else {
-      this.handelEvent(new KeyboardEvent('keyup', { code: this.currId }));
+      this.handelEvent(
+        new KeyboardEvent('keyup', { code: this.currId, key: this.currId }),
+      );
     }
   }
 
@@ -183,15 +166,7 @@ class Keyboard {
     evt.preventDefault();
 
     if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
-      this.keyLettersEn.forEach((letter) => {
-        letter.classList.toggle('hide-lang-change');
-      });
-      this.keyLettersRu.forEach((letter) => {
-        if (letter.previousSibling.classList.contains('behave-on-shift')) {
-          letter.previousSibling?.classList.toggle('hide-lang-change');
-        }
-        letter.classList.toggle('hide');
-      });
+      this.onLanguageChange();
     }
 
     if (this.keys.get(id).keyPressed && evt.type === 'keydown') return;
@@ -244,15 +219,7 @@ class Keyboard {
     document.getElementById(id).classList.toggle('key-pressed');
 
     if (evt.ctrlKey && evt.altKey && evt.type !== 'keyup') {
-      this.keyLettersEn.forEach((letter) => {
-        letter.classList.toggle('hide-lang-change');
-      });
-      this.keyLettersRu.forEach((letter) => {
-        if (letter.previousSibling.classList.contains('behave-on-shift')) {
-          letter.previousSibling?.classList.toggle('hide-lang-change');
-        }
-        letter.classList.toggle('hide');
-      });
+      this.onLanguageChange();
     }
 
     this.keys.get(id).keyPressed = !this.keys.get(id).keyPressed;
@@ -342,6 +309,48 @@ class Keyboard {
     this.textarea.focus();
   }
 
+  onLanguageChange(type) {
+    console.log(localStorage.lang, type);
+    if (type !== 'ON_PAGE_RELOAD') {
+      localStorage.lang = localStorage.lang === 'en' ? 'ru' : 'en';
+      console.log(localStorage.lang, type);
+    }
+
+    this.keyLettersEn.forEach((letter) => {
+      letter.classList.toggle('hide-lang-change');
+    });
+    this.keyLettersRu.forEach((letter) => {
+      if (letter.previousSibling.classList.contains('behave-on-shift')) {
+        letter.previousSibling?.classList.toggle('hide-lang-change');
+      }
+      letter.classList.toggle('hide');
+    });
+  }
+
+  createKeysByRow(row, rowNum) {
+    for (let i = 0; i < row.length; i += 1) {
+      this.keys.set(row[i].id, new Key(row[i], rowNum));
+    }
+  }
+
+  getHTML() {
+    let currRow = 0;
+    let rowLayout = '';
+    let keysLayout = '';
+
+    for (const key of this.keys.values()) {
+      if (currRow !== key.row) {
+        keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
+        rowLayout = '';
+        currRow += 1;
+      }
+      rowLayout += key.getHTML();
+    }
+
+    keysLayout += this.HtmlBuilder.build('div', 'row row-wrap', rowLayout);
+    return keysLayout;
+  }
+
   init() {
     document.body.innerHTML += this.HtmlBuilder.build('div', 'keyboard', ' ');
 
@@ -356,8 +365,8 @@ class Keyboard {
     wrapper.innerHTML += this.HtmlBuilder.build(
       'div',
       'rss-description',
-      `Смена языка: <b>LeftCtrl+LeftAlt</b>. Трабл с залипанием Ctrl при клацании Alt и Shift (любых, но одновременно) - не баг, а фишка виндовс.
-      Серьезно, Windows так работает, после <b>Ctrl+Alt</b> обязательно триггерится Ctrl, я не виноват.`,
+      `Смена языка: <b>LeftCtrl+LeftAlt</b>. Трабл с залипанием <b>Ctrl</b> при клацании <b>Alt</b> и <b>Shift</b> (любых, но одновременно) - не баг, а фишка виндовс.
+      Серьезно, Windows так работает, после <b>Ctrl+Alt</b> обязательно триггерится <b>Ctrl</b>, я не виноват.`,
     );
 
     wrapper.innerHTML += this.HtmlBuilder.build(
@@ -378,6 +387,13 @@ class Keyboard {
     this.keyLettersEn = document.querySelectorAll('.letter-en');
     this.keyLettersRu = document.querySelectorAll('.letter-ru');
     this.onShiftKeys = document.querySelectorAll('.behave-on-shift');
+
+    if (localStorage.lang === null) {
+      console.log(localStorage.lang);
+      localStorage.setItem('lang', 'en');
+    } else if (localStorage.lang === 'ru') {
+      this.onLanguageChange('ON_PAGE_RELOAD');
+    }
 
     document.addEventListener('keydown', this.handelEvent);
     document.addEventListener('keyup', this.handelEvent);
